@@ -75,22 +75,44 @@ egypt_wt2 <- wt2 %>%
 
 
 ```{r}
-## Descriptive Plot
-# Egypt
-ggplot(data = tun, aes(x = "", y = n, fill = q20112)) + 
-  geom_bar(width = 1, stat = "identity", color = "white") +
-  geom_text(aes(label = n), position = position_stack(vjust = 0.5), size = 3) +
-  coord_polar("y", start = 0) +
-  scale_fill_brewer(palette="Blues") +
-  facet_grid(facets=. ~ year) + theme_bw() + 
-  labs(title = "Attitude towards Islamist Parties in Tunisia",
-       subtitle = "Before and After Anti-Terror Law Adoption in 2015",
-       caption = "Source: Arab Barometer Wave III, IV") + 
-  theme(legend.title = element_blank(),
-        panel.grid  = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank())
+## Descriptive Plot - Islamist vs. Secular divide
+des1 <- egypt_wt1 %>%
+  select(q605a) %>%
+  filter(!q605a %in% c("Don't know",
+                       "I do not agree with either sentence (Do not read)")) %>%
+  mutate(q605a = recode(q605a,
+             "I Strongly agree with the 1st sentence" = "Strongly prefer religious party",
+             "I agree with the 1st sentence" = "Prefer religious party",
+             "I agree with the 2nd sentence" = "Prefer non-religious party",
+             "I strongly agree with the 2nd sentence"= "Strongly prefer non-religious party")) %>%
+  mutate(year = "2012-2014")
 
+des2 <- egypt_wt2 %>%
+  select(q605a) %>%
+  filter(!q605a %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q605a = recode(q605a,
+             "I strongly agree with the 1st sentence" = "Strongly prefer religious party",
+             "I agree with the 1st sentence" = "Prefer religious party",
+             "Do not agree with either (Do not read)" = "Neither",
+             "I agree with the 2nd sentence" = "Prefer non-religious party",
+             "I strongly agree with the 2nd sentence"= "Strongly prefer non-religious party")) %>%
+  mutate(year = "2016-2017")
+
+#Plot
+rbind(des1, des2) %>%
+  mutate(q605a = fct_relevel(q605a, 
+            "Strongly prefer religious party", 
+            "Prefer religious party", 
+            "Prefer non-religious party", 
+            "Strongly prefer non-religious party")) %>%
+  ggplot() + geom_bar(mapping = aes(x = q605a, fill = year), 
+                      position = 'dodge', width=0.5) + 
+  coord_flip() + theme_bw() +scale_fill_hue(c = 40)+
+  labs(title = "Attitude towards Islamist Parties in Egypt",
+       subtitle = "Before & After Anti-Terror Law Adoption",
+       caption = "Source: Arab Barometer Wave III, IV") +
+  labs(y=NULL)
 
 ```
 
