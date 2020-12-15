@@ -54,7 +54,7 @@ egypt2 <- abv4 %>%
 
 To preprocess the data before analyzing, I account for the weight of the survey to get an ideal representation of the population. As for the first dataset (2012-2014), the weights range from 0.047 to 6.07 while that of the second dataset (2016-2017) range from 0.67 to 1.90. To keep the number of observations similar, I multiply the weights by 10 and round to a whole number. Then I duplicate the each observation by the rounded weight. 
 
-```{r}
+```{r, warning=FALSE}
 # Account for weights
 summary(egypt1$wt)
 summary(egypt2$wt)
@@ -73,6 +73,8 @@ egypt_wt2 <- wt2 %>%
   uncount(wt_round)
 ```
 
+
+## Descriptive Plot?
 
 ```{r}
 ## Descriptive Plot - Islamist vs. Secular divide
@@ -119,13 +121,14 @@ rbind(des1, des2) %>%
 
 ## Normalize responses
 
+In this section, I normalize the responses to convert them uniformly into a numeric vector that ranges from 0 to 1. For binary variables, I recode them into 0 or 1 and, as for the continuous variable (age), I divide the values by 61 as the oldest respondent in each period is 61 and 58 respectively. I rescale them ordinal categorical variables, I use scaling method, by replacing each ordinal categorical variable with $$\frac{i-1/2}{M}$$.
 
 
-```{r}
+```{r, warning=FALSE}
 # Recode responses (wave 3)
 egypt_1 <- egypt_wt1 %>%
   mutate(q1001 = as.numeric(q1001),
-         q1001 = q1001/50) %>%
+         q1001 = q1001/61) %>%
   mutate(q13 = recode(q13,
                         "Rural" = 0,
                         "Urban" = 1)) %>%
@@ -252,12 +255,11 @@ egypt_1 <- egypt_wt1 %>%
                          "Much better" = 0.9))
 ```
 
-
-```{r}
+```{r, warning=FALSE}
 # Recode responses (wave 4)
 egypt_2 <- egypt_wt2 %>%
   mutate(q1001 = as.numeric(q1001),
-         q1001 = q1001/50) %>%
+         q1001 = q1001/61) %>%
   mutate(q13 = recode(q13,
                         "Rural" = 0,
                         "Urban" = 1)) %>%
