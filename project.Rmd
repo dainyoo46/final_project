@@ -1,0 +1,481 @@
+---
+title: "PPOL 628 Final Project"
+author: "Dain Yoo"
+date: "12/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse) 
+library(tidymodels)
+library(ggplot2)
+library(gridExtra)
+library(grid)
+library(tidyr)
+library(GGally)
+library(ggpubr)
+library(factoextra)
+library(viridis)
+```
+
+```{r, warning=FALSE}
+# Read survey dataset
+abv3 <- read_csv("abv3.csv")
+abv4 <- read_csv("abv4.csv")
+
+# Subset for Egypt and 20 survey questions
+egypt1 <- abv3 %>%
+  filter(country == "Egypt") %>%
+  select(country, wt, q13, q1002, q1012, q1004, q1001, q1003,
+         q102, q105, q106, q20112, q210, q301, q404, q409, q513,
+         q523, q605a, q609, q6105, q6101)
+
+egypt2 <- abv4 %>%
+  filter(country == "Egypt") %>%
+  select(country, wt, q13, q1002, q1012, q1004, q1001, q1003,
+         q102, q105, q106, q1072, q210, q301, q404, q409, q513,
+         q523, q605a, q609, q6106, q6101)
+
+
+# Account for weights
+summary(egypt1$wt)
+summary(egypt2$wt)
+
+# Duplicated observations by weight*10, and rounded to a whole number
+wt1 <- egypt1 %>%
+  mutate(wt10 = wt*10, wt_round = round(wt10, 0))
+wt2 <- egypt2 %>%
+  mutate(wt10 = wt*10, wt_round = round(wt10, 0))
+
+# adjusted for the weights
+egypt_wt1 <- wt1 %>%
+  uncount(wt_round)
+egypt_wt2 <- wt2 %>%
+  uncount(wt_round)
+```
+
+
+```{r}
+## Descriptive Plot
+# Tunisia
+ggplot(data = tun, aes(x = "", y = n, fill = q20112)) + 
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  geom_text(aes(label = n), position = position_stack(vjust = 0.5), size = 3) +
+  coord_polar("y", start = 0) +
+  scale_fill_brewer(palette="Blues") +
+  facet_grid(facets=. ~ year) + theme_bw() + 
+  labs(title = "Attitude towards Islamist Parties in Tunisia",
+       subtitle = "Before and After Anti-Terror Law Adoption in 2015",
+       caption = "Source: Arab Barometer Wave III, IV") + 
+  theme(legend.title = element_blank(),
+        panel.grid  = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+
+
+```
+
+```{r}
+# Recode responses (wave 3)
+egypt_1 <- egypt_wt1 %>%
+  mutate(q1001 = as.numeric(q1001),
+         q1001 = q1001/50) %>%
+  mutate(q13 = recode(q13,
+                        "Rural" = 0,
+                        "Urban" = 1)) %>%
+  mutate(q1002 = recode(q1002,
+                        "Female" = 0,
+                        "Male" = 1)) %>%  
+  mutate(q1012 = recode(q1012,
+                        "Christian" = 0,
+                        "Muslim" = 1)) %>%
+  mutate(q1004 = recode(q1004,
+                        "No" = 0,
+                        "Yes" = 1)) %>%
+    filter(!q301 %in% c("Refuse", 
+                        "Don't know")) %>%
+    mutate(q301 = recode(q301,
+                        "No" = 0,
+                        "Yes" = 1)) %>%
+    filter(!q210 %in% c("Don't know")) %>%
+    mutate(q210 = recode(q210,
+                        "No" = 0,
+                        "Yes" = 1)) %>%
+    mutate(q1003 = recode(q1003,
+                          "Illiterate/No formal education" = 0.07,
+                          "Elementary" = 0.21,
+                          "Prepartory/Basic" = 0.36,
+                          "Secondary" = 0.5,
+                          "Mid-level diploma (professional or technical" = 0.64,
+                          "ba" = 0.79,
+                          "MA and above" = 0.96)) %>%
+  filter(!q6101 %in% c("Refuse", 
+                        "Don't know")) %>%
+  mutate(q6101 = recode(q6101,
+                        "Never" = 0.1,
+                        "Rarely" = 0.3,
+                        "Sometimes" = 0.5,
+                        "Most of the time" = 0.7,
+                        "Always"= 0.9)) %>%
+  filter(!q6105 %in% c("Refuse", 
+                        "Don't know")) %>%
+  mutate(q6105 = recode(q6105,
+                        "Never" = 0.1,
+                        "Rarely" = 0.3,
+                        "Sometimes" = 0.5,
+                        "Most of the time" = 0.7,
+                        "Always"= 0.9)) %>%
+  filter(!q609 %in% c("Refuse")) %>%
+  mutate(q609 = recode(q609,
+                        "Not religious" = 0.17,
+                        "Somewhat religious" = 0.5,
+                        "Religious" = 0.83)) %>%
+  filter(!q605a %in% c("Don't know")) %>%
+  mutate(q605a = recode(q605a,
+                        "I Strongly agree with the 1st sentence" = 0.1,
+                        "I agree with the 1st sentence" = 0.3,
+                        "I do not agree with either sentence (Do not read)" = 0.5,
+                        "I agree with the 2nd sentence" = 0.7,
+                        "I strongly agree with the 2nd sentence"= 0.9)) %>%
+  filter(!q523 %in% c("Don't know")) %>%
+  mutate(q523 = recode(q523,
+                        "Not justified at all" = 0.125,
+                        "Justified to a limited extent" = 0.375,
+                        "Justified to a medium extent" = 0.625,
+                        "Justified to a great extent" = 0.875)) %>%
+  filter(!q513 %in% c("Don't know",
+                      "Refuse",
+                      "Not concerned / Not interested")) %>%
+  mutate(q513 = recode(q513,
+                       "1" = 1,
+                       "2" = 2,
+                       "3" = 3,
+                       "4" = 4,
+                       "5" = 5, 
+                       "6" = 6,
+                       "7" = 7,
+                       "8" = 8,
+                       "9" = 9,
+                        "Absolutely unsatisfied" = 0.1,
+                        "Completely satisfied" = 10),
+         q513 = q513/10) %>%
+  filter(!q409 %in% c("Don't know")) %>%
+  mutate(q409 = recode(q409,
+                         "Daily or almost daily" = 0.1 ,
+                         "At least once a week" = 0.3,
+                         "At least once a month" = 0.5,
+                         "A few times a year" = 0.7,
+                         "I do not use the internet" = 0.9)) %>%
+  filter(!q404 %in% c("Don't know")) %>%
+  mutate(q404 = recode(q404,
+                         "Very interested" = 0.125,
+                         "Interested" = 0.375,
+                         "Slightly interested" = 0.625,
+                         "Not interested" = 0.875)) %>%
+  filter(!q301 %in% c("Refuse", 
+                      "Don't know")) %>%  
+  filter(!q210 %in% c("Don't know")) %>%
+  filter(!q20112 %in% c("Refuse", 
+                        "Don't know")) %>% 
+  mutate(q20112 = recode(q20112,
+                         "I absolutely do not trust it" = 0.125,
+                         "I trust it to a limited extent" = 0.375,
+                         "I trust it to a medium extent" = 0.625,
+                         "I trust it to a great extent" = 0.875)) %>%
+  filter(!q106 %in% c("Refuse", 
+                      "Don't know")) %>% 
+  mutate(q106 = recode(q106,
+                         "Not at all" = 0.125,
+                         "To a limited extent" = 0.375,
+                         "To a medium extent" = 0.625,
+                         "To a great extent" = 0.875)) %>%
+  filter(!q105 %in% c("Refuse", 
+                      "Don't know")) %>% 
+  mutate(q105 = recode(q105,
+                         "Absolutely not ensured" = 0.125,
+                         "Not ensured" = 0.375,
+                         "Ensured" = 0.625,
+                         "Fully ensured" = 0.875)) %>%  
+  filter(!q102 %in% c("Refuse", 
+                      "Don't know")) %>% 
+  mutate(q102 = recode(q102,
+                         "Much worse" = 0.1,
+                         "Somewhat worse" = 0.3,
+                         "Almost the same as the current situation" = 0.5,
+                         "Somewhat better" = 0.7,
+                         "Much better" = 0.9))
+```
+
+
+```{r}
+# Recode responses (wave 4)
+egypt_2 <- egypt_wt2 %>%
+  mutate(q1001 = as.numeric(q1001),
+         q1001 = q1001/50) %>%
+  mutate(q13 = recode(q13,
+                        "Rural" = 0,
+                        "Urban" = 1)) %>%
+  mutate(q1002 = recode(q1002,
+                        "Female" = 0,
+                        "Male" = 1)) %>%  
+  mutate(q1012 = recode(q1012,
+                        "Christian" = 0,
+                        "Muslim" = 1)) %>%
+  mutate(q1004 = recode(q1004,
+                        "No" = 0,
+                        "Yes" = 1)) %>%
+    filter(!q301 %in% c("Decline to answer (Do not read)")) %>%
+    mutate(q301 = recode(q301,
+                        "No" = 0,
+                        "Yes" = 1)) %>%
+    mutate(q1003 = recode(q1003,
+                          "Illiterate/No formal education" = 0.07,
+                          "Elementary" = 0.21,
+                          "Preparatory/Basic" = 0.36,
+                          "Secondary" = 0.5,
+                          "Mid-level diploma/professional or technical" = 0.64,
+                          "BA" = 0.79,
+                          "MA and above" = 0.96)) %>%
+  filter(!q6101 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q6101 = recode(q6101,
+                        "Never" = 0.1,
+                        "Rarely" = 0.3,
+                        "Sometimes" = 0.5,
+                        "Most of the time" = 0.7,
+                        "Always"= 0.9)) %>%
+  filter(!q6106 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q6106 = recode(q6106,
+                        "Never" = 0.1,
+                        "Rarely" = 0.3,
+                        "Sometimes" = 0.5,
+                        "Most of the time" = 0.7,
+                        "Always"= 0.9)) %>%
+  filter(!q609 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q609 = recode(q609,
+                        "Not religious" = 0.17,
+                        "Somewhat religious" = 0.5,
+                        "Religious" = 0.83)) %>%
+  filter(!q605a %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q605a = recode(q605a,
+                        "I strongly agree with the 1st sentence" = 0.1,
+                        "I agree with the 1st sentence" = 0.3,
+                        "Do not agree with either (Do not read)" = 0.5,
+                        "I agree with the 2nd sentence" = 0.7,
+                        "I strongly agree with the 2nd sentence"= 0.9)) %>%
+  filter(!q523 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q523 = recode(q523,
+                        "Not justifiable at all" = 0.125,
+                        "Not very justified" = 0.375,
+                        "Somewhat justified" = 0.625,
+                        "Completely justified" = 0.875)) %>%
+  filter(!q513 %in% c("Decline to answer (Do not read)",
+                      "Don't know (Do not read)",
+                      "Not concerned/not interested")) %>%
+  mutate(q513 = recode(q513,
+                       "1" = 1,
+                       "2" = 2,
+                       "3" = 3,
+                       "4" = 4,
+                       "5" = 5, 
+                       "6" = 6,
+                       "7" = 7,
+                       "8" = 8,
+                       "9" = 9,
+                       "Completely unsatisfied" = 0.1,
+                      "Completely satisfied" = 10),
+         q513 = q513/10) %>%
+  filter(!q409 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q409 = recode(q409,
+                         "I do not use the internet " = 0.083 ,
+                         "Less than once a week" = 0.25,
+                         "Once a week" = 0.417,
+                         "Several times a week" = 0.583,
+                         "Daily" = 0.75,
+                         "I am online almost all day" = 0.91)) %>%
+  filter(!q404 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q404 = recode(q404,
+                         "Very interested" = 0.125,
+                         "Interested" = 0.375,
+                         "Somewhat interested" = 0.625,
+                         "Not interested at all" = 0.875)) %>%
+  filter(!q301 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%  
+  filter(!q210 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>%
+  mutate(q210 = recode(q210,
+                         "Not at all" = 0.125,
+                         "To a small extent" = 0.375,
+                         "To a medium extent" = 0.625,
+                         "To a large extent" = 0.875)) %>%
+  filter(!q1072 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>% 
+  mutate(q1072 = recode(q1072,
+                         "Not at all" = 0.125,
+                         "Not much" = 0.375,
+                         "Much" = 0.625,
+                         "Very much" = 0.875)) %>%
+  filter(!q106 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>% 
+  mutate(q106 = recode(q106,
+                         "Not treated equally at all" = 0.125,
+                         "To a limited extent" = 0.375,
+                         "To a medium extent" = 0.625,
+                         "To a great extent" = 0.875)) %>%
+  filter(!q105 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>% 
+  mutate(q105 = recode(q105,
+                         "Absolutely not ensured" = 0.125,
+                         "Not ensured" = 0.375,
+                         "Ensured" = 0.625,
+                         "Fully ensured" = 0.875)) %>%  
+  filter(!q102 %in% c("Decline to answer (Do not read)", 
+                        "Don't know (Do not read)")) %>% 
+  mutate(q102 = recode(q102,
+                         "Much worse" = 0.1,
+                         "Somewhat worse" = 0.3,
+                         "Almost the same as the current situation" = 0.5,
+                         "Somewhat better" = 0.7,
+                         "Much better" = 0.9))
+```    
+
+
+
+```{r}
+# Drop weight variables
+egypt_1 <- select(egypt_1, -one_of(c("wt", "wt10", "country")))
+egypt_2 <- select(egypt_2, -one_of(c("wt", "wt10", "country"))) 
+
+
+#Optimal number of clusters
+fviz_nbclust(egypt_1, FUN = kmeans, method = "wss") #5?
+fviz_nbclust(egypt_1, FUN = kmeans, method = "silhouette") #2
+fviz_nbclust(egypt_1, FUN = kmeans, method = "gap_stat") #7
+
+
+fviz_nbclust(egypt_2, FUN = kmeans, method = "wss") #5?
+fviz_nbclust(egypt_2, FUN = kmeans, method = "silhouette") #2
+fviz_nbclust(egypt_2, FUN = kmeans, method = "gap_stat") #9
+
+#Clustering Analysis
+set.seed(2020)
+egypt1_kmeans <- kmeans(egypt_1,
+                       centers = 6, # number of clusters
+                       nstart = 100)
+egypt2_kmeans <- kmeans(egypt_2,
+                       centers = 6, # number of clusters
+                       nstart = 100)
+
+tidy(egypt1_kmeans) %>% knitr::kable(digits = 2, "simple")
+tidy(egypt2_kmeans) %>% knitr::kable(digits = 2, "simple")
+
+#Expert check
+mean1 <- bind_cols(
+  egypt_1,
+cluster = egypt1_kmeans$cluster) %>%
+  group_by(cluster) %>% 
+  summarize(q13 = mean(q13),
+            q1002 = mean(q1002),
+            q1012 = mean(q1012),
+            q1004 = mean(q1004),
+            q1001 = mean(q1001),
+            q1003 = mean(q1003),
+            q102 = mean(q102),
+            q105 = mean(q105),
+            q106 = mean(q106),
+            q20112 = mean(q20112),
+            q210 = mean(q210),
+            q301 = mean(q301),
+            q404 = mean(q404),
+            q409 = mean(q409),
+            q513 = mean(q513),
+            q523 = mean(q523),
+            q605a = mean(q605a),
+            q609 = mean(q609),
+            q6105 = mean(q6105),
+            q6101 = mean(q6101)) 
+
+mean1 %>% knitr::kable(digits = 3)
+
+mean2 <- bind_cols(
+  egypt_2,
+  cluster = egypt2_kmeans$cluster) %>%
+  group_by(cluster) %>% 
+  summarize(q13 = mean(q13),
+            q1002 = mean(q1002),
+            q1012 = mean(q1012),
+            q1004 = mean(q1004),
+            q1001 = mean(q1001),
+            q1003 = mean(q1003),
+            q102 = mean(q102),
+            q105 = mean(q105),
+            q106 = mean(q106),
+            q1072 = mean(q1072),
+            q210 = mean(q210),
+            q301 = mean(q301),
+            q404 = mean(q404),
+            q409 = mean(q409),
+            q513 = mean(q513),
+            q523 = mean(q523),
+            q605a = mean(q605a),
+            q609 = mean(q609),
+            q6106 = mean(q6106),
+            q6101 = mean(q6101)) 
+
+mean2 %>%  knitr::kable(digits = 3)
+```
+
+
+
+```{r}
+#PCA
+principle_components1 <- prcomp(egypt_1, scale. = FALSE)
+principle_components2 <- prcomp(egypt_2, scale. = FALSE)
+
+# view the amount of variance explained
+summary(principle_components1)
+
+# create and visualize the group membership of observations in the components
+bind_cols(
+  as_tibble(principle_components1$x), 
+  cluster = egypt1_kmeans$cluster) %>%
+  ggplot(aes(PC1, PC2, color = factor(cluster))) + geom_point() +
+  labs(title = "Public Opinion Clusters and PCA") + theme_minimal()
+
+bind_cols(
+  as_tibble(principle_components2$x), 
+  cluster = egypt2_kmeans$cluster) %>%
+  ggplot(aes(PC1, PC2, color = factor(cluster))) + geom_point() +
+  labs(title = "Public Opinion Clusters and PCA") + theme_minimal()
+```
+
+```{r, include= FALSE}
+#change as factor
+mean1$cluster <- as.factor(mean1$cluster)
+mean2$cluster <- as.factor(mean2$cluster)
+```
+
+
+```{r}
+#Parellel coordinate plot
+x <- ggparcoord(mean1, columns = c(2,3,5:7,11,14:19), 
+                groupColumn = 'cluster', scale = 'globalminmax',
+                showPoints = TRUE) + theme_bw() + scale_color_viridis(discrete=TRUE)
+
+y <- ggparcoord(mean2, columns = c(2,3,5:7,11,14:19), 
+                groupColumn = 'cluster', scale = 'globalminmax',
+                showPoints = TRUE) + theme_bw() + scale_color_viridis(discrete=TRUE)
+
+ggarrange(
+  x, y, labels = c("T1", "T2"),
+  common.legend = TRUE, legend = "bottom", nrow = 2
+  )
+```
+
+
