@@ -74,7 +74,7 @@ egypt_wt2 <- wt2 %>%
 ```
 
 
-## Descriptive Plot?
+### Descriptive Plot?
 
 ```{r}
 ## Descriptive Plot - Islamist vs. Secular divide
@@ -119,7 +119,7 @@ rbind(des1, des2) %>%
 ```
 
 
-## Normalize responses
+### Normalize responses
 
 In this section, I normalize the responses to convert them uniformly into a numeric vector that ranges from 0 to 1. For binary variables, I recode them into 0 or 1 and, as for the continuous variable (age), I divide the values by 61 as the oldest respondent in each period is 61 and 58 respectively. I rescale them ordinal categorical variables, I use scaling method, by replacing each ordinal categorical variable with $$\frac{i-1/2}{M}$$.
 
@@ -210,17 +210,17 @@ egypt_1 <- egypt_wt1 %>%
          q513 = q513/10) %>%
   filter(!q409 %in% c("Don't know")) %>%
   mutate(q409 = recode(q409,
-                         "Daily or almost daily" = 0.1 ,
-                         "At least once a week" = 0.3,
+                         "Daily or almost daily" = 0.9 ,
+                         "At least once a week" = 0.7,
                          "At least once a month" = 0.5,
-                         "A few times a year" = 0.7,
-                         "I do not use the internet" = 0.9)) %>%
+                         "A few times a year" = 0.3,
+                         "I do not use the internet" = 0.1)) %>%
   filter(!q404 %in% c("Don't know")) %>%
   mutate(q404 = recode(q404,
-                         "Very interested" = 0.125,
-                         "Interested" = 0.375,
-                         "Slightly interested" = 0.625,
-                         "Not interested" = 0.875)) %>%
+                         "Not interested" = 0.125,
+                         "Slightly interested" = 0.375,
+                         "Interested" = 0.625,
+                         "Very interested" = 0.875)) %>%
   filter(!q301 %in% c("Refuse", 
                       "Don't know")) %>%  
   filter(!q210 %in% c("Don't know")) %>%
@@ -349,10 +349,10 @@ egypt_2 <- egypt_wt2 %>%
   filter(!q404 %in% c("Decline to answer (Do not read)", 
                         "Don't know (Do not read)")) %>%
   mutate(q404 = recode(q404,
-                         "Very interested" = 0.125,
-                         "Interested" = 0.375,
-                         "Somewhat interested" = 0.625,
-                         "Not interested at all" = 0.875)) %>%
+                         "Not interested at all" = 0.125,
+                         "Somewhat interested" = 0.375,
+                         "Interested" = 0.625,
+                         "Very interested" = 0.875)) %>%
   filter(!q301 %in% c("Decline to answer (Do not read)", 
                         "Don't know (Do not read)")) %>%  
   filter(!q210 %in% c("Decline to answer (Do not read)", 
@@ -394,89 +394,60 @@ egypt_2 <- egypt_wt2 %>%
 ```    
 
 
+### Number of clusters
 
-```{r}
+```{r, include=FALSE}
 # Drop weight variables
 egypt_1 <- select(egypt_1, -one_of(c("wt", "wt10", "country")))
 egypt_2 <- select(egypt_2, -one_of(c("wt", "wt10", "country"))) 
 
 
-#Optimal number of clusters
-fviz_nbclust(egypt_1, FUN = kmeans, method = "wss") #5?
-fviz_nbclust(egypt_1, FUN = kmeans, method = "silhouette") #2
-fviz_nbclust(egypt_1, FUN = kmeans, method = "gap_stat") #7
+##Optimal number of clusters
+#fviz_nbclust(egypt_1, FUN = kmeans, method = "wss") #5?
+#fviz_nbclust(egypt_1, FUN = kmeans, method = "silhouette") #2
+#fviz_nbclust(egypt_1, FUN = kmeans, method = "gap_stat") #7
+
+#fviz_nbclust(egypt_2, FUN = kmeans, method = "wss") #5?
+#fviz_nbclust(egypt_2, FUN = kmeans, method = "silhouette") #2
+#fviz_nbclust(egypt_2, FUN = kmeans, method = "gap_stat") #9
+```
 
 
-fviz_nbclust(egypt_2, FUN = kmeans, method = "wss") #5?
-fviz_nbclust(egypt_2, FUN = kmeans, method = "silhouette") #2
-fviz_nbclust(egypt_2, FUN = kmeans, method = "gap_stat") #9
 
+```{r figurename, echo=FALSE, out.width = '100%'}
+knitr::include_graphics("period1.png")
+knitr::include_graphics("period2.png")
+```
+
+```{r}
 #Clustering Analysis
 set.seed(2020)
-egypt1_kmeans <- kmeans(egypt_1,
+egypt1_kmeans <- kmeans(na.omit(egypt_1),
                        centers = 6, # number of clusters
                        nstart = 100)
-egypt2_kmeans <- kmeans(egypt_2,
+egypt2_kmeans <- kmeans(na.omit(egypt_2),
                        centers = 6, # number of clusters
                        nstart = 100)
 
-tidy(egypt1_kmeans) %>% knitr::kable(digits = 2, "simple")
-tidy(egypt2_kmeans) %>% knitr::kable(digits = 2, "simple")
+tidy(egypt1_kmeans) %>% knitr::kable(digits = 2)
+tidy(egypt2_kmeans) %>% knitr::kable(digits = 2)
+```
 
-#Expert check
-mean1 <- bind_cols(
+
+```{r}
+# Expert check
+bind_cols(
   egypt_1,
-cluster = egypt1_kmeans$cluster) %>%
+  cluster = egypt1_kmeans$cluster) %>%
   group_by(cluster) %>% 
-  summarize(q13 = mean(q13),
-            q1002 = mean(q1002),
-            q1012 = mean(q1012),
-            q1004 = mean(q1004),
-            q1001 = mean(q1001),
-            q1003 = mean(q1003),
-            q102 = mean(q102),
-            q105 = mean(q105),
-            q106 = mean(q106),
-            q20112 = mean(q20112),
-            q210 = mean(q210),
-            q301 = mean(q301),
-            q404 = mean(q404),
-            q409 = mean(q409),
-            q513 = mean(q513),
-            q523 = mean(q523),
-            q605a = mean(q605a),
-            q609 = mean(q609),
-            q6105 = mean(q6105),
-            q6101 = mean(q6101)) 
+  summarise(across(everything(), list(mean)))%>% knitr::kable(digits = 3)
 
-mean1 %>% knitr::kable(digits = 3)
-
-mean2 <- bind_cols(
+bind_cols(
   egypt_2,
   cluster = egypt2_kmeans$cluster) %>%
   group_by(cluster) %>% 
-  summarize(q13 = mean(q13),
-            q1002 = mean(q1002),
-            q1012 = mean(q1012),
-            q1004 = mean(q1004),
-            q1001 = mean(q1001),
-            q1003 = mean(q1003),
-            q102 = mean(q102),
-            q105 = mean(q105),
-            q106 = mean(q106),
-            q1072 = mean(q1072),
-            q210 = mean(q210),
-            q301 = mean(q301),
-            q404 = mean(q404),
-            q409 = mean(q409),
-            q513 = mean(q513),
-            q523 = mean(q523),
-            q605a = mean(q605a),
-            q609 = mean(q609),
-            q6106 = mean(q6106),
-            q6101 = mean(q6101)) 
-
-mean2 %>%  knitr::kable(digits = 3)
+  summarise(across(everything(), list(mean)))%>% knitr::kable(digits = 3)
+  
 ```
 
 
