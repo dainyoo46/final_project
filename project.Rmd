@@ -18,6 +18,18 @@ library(factoextra)
 library(viridis)
 ```
 
+### Research puzzle
+
+I am interested in how Egyptian public opinion shifts after the adoption of anti-terror law in Egypt. Specifically, I am interested in exploring polarization between secularists and Islamists as anti-terror law, by nature, targets Islamist extremists and the secular regime would target the Islamists as potential threat to national security. 
+
+
+### Data and Methods
+
+I use Arab Barometer survey data (2006-2019) to observe latent clusters within public opinion. Because Egypt adopted anti-terror in 2015, I use Wave 3 (2012-2014) and Wave 4 (2016-2017) to see how polarization exacerbated in Egypt after the enactment. 
+
+Among various questionnaires, I includeㅇ 20 of them for more variation across clusters. They include binary variables (e.g. urban/rural, male/female, voted/did not vote), categorical ordinal variable (e.g. not at all/once a month/once a week/daily, level of education) and continuous variable (e.g. age). Topics of the selected questionnaires include political participation, religious practices, media exposure and stances on economic and diplomatic issues.
+
+
 ```{r, warning=FALSE}
 # Read survey dataset
 abv3 <- read_csv("abv3.csv")
@@ -35,19 +47,26 @@ egypt2 <- abv4 %>%
   select(country, wt, q13, q1002, q1012, q1004, q1001, q1003,
          q102, q105, q106, q1072, q210, q301, q404, q409, q513,
          q523, q605a, q609, q6106, q6101)
+```
 
 
+### Preprocessing - Survey weight
+
+To preprocess the data before analyzing, I account for the weight of the survey to get an ideal representation of the population. As for the first dataset (2012-2014), the weights range from 0.047 to 6.07 while that of the second dataset (2016-2017) range from 0.67 to 1.90. To keep the number of observations similar, I multiply the weights by 10 and round to a whole number. Then I duplicate the each observation by the rounded weight. 
+
+```{r}
 # Account for weights
 summary(egypt1$wt)
 summary(egypt2$wt)
 
-# Duplicated observations by weight*10, and rounded to a whole number
+
+# Duplicated observations by weight*10
+# and rounded to a whole number
 wt1 <- egypt1 %>%
   mutate(wt10 = wt*10, wt_round = round(wt10, 0))
 wt2 <- egypt2 %>%
   mutate(wt10 = wt*10, wt_round = round(wt10, 0))
 
-# adjusted for the weights
 egypt_wt1 <- wt1 %>%
   uncount(wt_round)
 egypt_wt2 <- wt2 %>%
@@ -57,7 +76,7 @@ egypt_wt2 <- wt2 %>%
 
 ```{r}
 ## Descriptive Plot
-# Tunisia
+# Egypt
 ggplot(data = tun, aes(x = "", y = n, fill = q20112)) + 
   geom_bar(width = 1, stat = "identity", color = "white") +
   geom_text(aes(label = n), position = position_stack(vjust = 0.5), size = 3) +
@@ -74,6 +93,11 @@ ggplot(data = tun, aes(x = "", y = n, fill = q20112)) +
 
 
 ```
+
+
+## Normalize responses
+
+
 
 ```{r}
 # Recode responses (wave 3)
