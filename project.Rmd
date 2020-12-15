@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+rm(list=ls())
 library(tidyverse) 
 library(tidymodels)
 library(ggplot2)
@@ -30,11 +31,13 @@ I use Arab Barometer survey data (2006-2019) to observe latent clusters within p
 Among various questionnaires, I includeㅇ 20 of them for more variation across clusters. They include binary variables (e.g. urban/rural, male/female, voted/did not vote), categorical ordinal variable (e.g. not at all/once a month/once a week/daily, level of education) and continuous variable (e.g. age). Topics of the selected questionnaires include political participation, religious practices, media exposure and stances on economic and diplomatic issues.
 
 
-```{r, warning=FALSE}
+```{r, include=FALSE}
 # Read survey dataset
 abv3 <- read_csv("abv3.csv")
 abv4 <- read_csv("abv4.csv")
+```
 
+```{r}
 # Subset for Egypt and 20 survey questions
 egypt1 <- abv3 %>%
   filter(country == "Egypt") %>%
@@ -58,7 +61,6 @@ To preprocess the data before analyzing, I account for the weight of the survey 
 # Account for weights
 summary(egypt1$wt)
 summary(egypt2$wt)
-
 
 # Duplicated observations by weight*10
 # and rounded to a whole number
@@ -340,7 +342,7 @@ egypt_2 <- egypt_wt2 %>%
   filter(!q409 %in% c("Decline to answer (Do not read)", 
                         "Don't know (Do not read)")) %>%
   mutate(q409 = recode(q409,
-                         "I do not use the internet " = 0.083 ,
+                         "I do not use the internet" = 0.083 ,
                          "Less than once a week" = 0.25,
                          "Once a week" = 0.417,
                          "Several times a week" = 0.583,
@@ -436,18 +438,21 @@ tidy(egypt2_kmeans) %>% knitr::kable(digits = 2)
 
 ```{r}
 # Expert check
-bind_cols(
+mean1 <- bind_cols(
   egypt_1,
   cluster = egypt1_kmeans$cluster) %>%
   group_by(cluster) %>% 
-  summarise(across(everything(), list(mean)))%>% knitr::kable(digits = 3)
+  summarise(across(everything(), list(mean)))
 
-bind_cols(
+mean2 <- bind_cols(
   egypt_2,
   cluster = egypt2_kmeans$cluster) %>%
   group_by(cluster) %>% 
-  summarise(across(everything(), list(mean)))%>% knitr::kable(digits = 3)
+  summarise(across(everything(), list(mean)))
+
   
+mean1 %>% knitr::kable(digits = 3)
+mean2 %>% knitr::kable(digits = 3)
 ```
 
 
