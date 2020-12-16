@@ -81,52 +81,6 @@ egypt_wt2 <- wt2 %>%
 
 
 
-### Descriptive Plot?
-
-```{r}
-## Descriptive Plot - Islamist vs. Secular divide
-des1 <- egypt_wt1 %>%
-  select(q605a) %>%
-  filter(!q605a %in% c("Don't know",
-                       "I do not agree with either sentence (Do not read)")) %>%
-  mutate(q605a = recode(q605a,
-             "I Strongly agree with the 1st sentence" = "Strongly prefer religious party",
-             "I agree with the 1st sentence" = "Prefer religious party",
-             "I agree with the 2nd sentence" = "Prefer non-religious party",
-             "I strongly agree with the 2nd sentence"= "Strongly prefer non-religious party")) %>%
-  mutate(year = "2012-2014")
-
-des2 <- egypt_wt2 %>%
-  select(q605a) %>%
-  filter(!q605a %in% c("Decline to answer (Do not read)", 
-                        "Don't know (Do not read)")) %>%
-  mutate(q605a = recode(q605a,
-             "I strongly agree with the 1st sentence" = "Strongly prefer religious party",
-             "I agree with the 1st sentence" = "Prefer religious party",
-             "Do not agree with either (Do not read)" = "Neither",
-             "I agree with the 2nd sentence" = "Prefer non-religious party",
-             "I strongly agree with the 2nd sentence"= "Strongly prefer non-religious party")) %>%
-  mutate(year = "2016-2017")
-
-#Plot
-rbind(des1, des2) %>%
-  mutate(q605a = fct_relevel(q605a, 
-            "Strongly prefer religious party", 
-            "Prefer religious party", 
-            "Prefer non-religious party", 
-            "Strongly prefer non-religious party")) %>%
-  ggplot() + geom_bar(mapping = aes(x = q605a, fill = year), 
-                      position = 'dodge', width=0.5) + 
-  coord_flip() + theme_bw() +scale_fill_hue(c = 40)+
-  labs(title = "Attitude towards Islamist Parties in Egypt",
-       subtitle = "Before & After Anti-Terror Law Adoption",
-       caption = "Source: Arab Barometer Wave III, IV") +
-  labs(y=NULL)
-
-```
-
-
-
 ### Normalize responses
 
 In this section, I normalize the responses to convert them uniformly into a numeric vector that ranges from 0 to 1. For binary variables, I recode them into 0 or 1 and, as for the continuous variable (age), I divide the values by 61 as the oldest respondent in each period is 61 and 58 respectively. I rescale them ordinal categorical variables, I use scaling method, by replacing each ordinal categorical variable with the equation below: $$\frac{i-1/2}{M}$$ 
