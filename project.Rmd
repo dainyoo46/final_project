@@ -17,6 +17,9 @@ library(GGally)
 library(ggpubr)
 library(factoextra)
 library(viridis)
+library(cluster) 
+library(dendextend)
+
 ```
 
 ### Research puzzle
@@ -24,12 +27,12 @@ library(viridis)
 I am interested in how Egyptian public opinion shifts after the adoption of anti-terror law in Egypt. Specifically, I am interested in exploring polarization between secularists and Islamists as anti-terror law, by nature, targets Islamist extremists and the secular regime would target the Islamists as potential threat to national security. 
 
 
+
 ### Data and Methods
 
 I use Arab Barometer survey data (2006-2019) to observe latent clusters within public opinion. Because Egypt adopted anti-terror in 2015, I use Wave 3 (2012-2014) and Wave 4 (2016-2017) to see how polarization exacerbated in Egypt after the enactment. 
 
-Among various questionnaires, I includeㅇ 20 of them for more variation across clusters. They include binary variables (e.g. urban/rural, male/female, voted/did not vote), categorical ordinal variable (e.g. not at all/once a month/once a week/daily, level of education) and continuous variable (e.g. age). Topics of the selected questionnaires include political participation, religious practices, media exposure and stances on economic and diplomatic issues.
-
+Among various questionnaires, I included 20 of them for more variation across clusters. They include binary variables (e.g. urban/rural, male/female, voted/did not vote), categorical ordinal variable (e.g. not at all/once a month/once a week/daily, level of education) and continuous variable (e.g. age). Topics of the selected questionnaires include political participation, religious practices, media exposure and stances on economic and diplomatic issues.
 
 ```{r, include=FALSE}
 # Read survey dataset
@@ -37,7 +40,7 @@ abv3 <- read_csv("abv3.csv")
 abv4 <- read_csv("abv4.csv")
 ```
 
-```{r}
+```{r, echo=FALSE}
 # Subset for Egypt and 20 survey questions
 egypt1 <- abv3 %>%
   filter(country == "Egypt") %>%
@@ -51,6 +54,7 @@ egypt2 <- abv4 %>%
          q102, q105, q106, q1072, q210, q301, q404, q409, q513,
          q523, q605a, q609, q6106, q6101)
 ```
+
 
 
 ### Preprocessing - Survey weight
@@ -74,6 +78,7 @@ egypt_wt1 <- wt1 %>%
 egypt_wt2 <- wt2 %>%
   uncount(wt_round)
 ```
+
 
 
 ### Descriptive Plot?
@@ -121,10 +126,12 @@ rbind(des1, des2) %>%
 ```
 
 
+
 ### Normalize responses
 
-In this section, I normalize the responses to convert them uniformly into a numeric vector that ranges from 0 to 1. For binary variables, I recode them into 0 or 1 and, as for the continuous variable (age), I divide the values by 61 as the oldest respondent in each period is 61 and 58 respectively. I rescale them ordinal categorical variables, I use scaling method, by replacing each ordinal categorical variable with $$\frac{i-1/2}{M}$$.
+In this section, I normalize the responses to convert them uniformly into a numeric vector that ranges from 0 to 1. For binary variables, I recode them into 0 or 1 and, as for the continuous variable (age), I divide the values by 61 as the oldest respondent in each period is 61 and 58 respectively. I rescale them ordinal categorical variables, I use scaling method, by replacing each ordinal categorical variable with the equation below: $$\frac{i-1/2}{M}$$ 
 
+I reiterate this for Wave 4 as well. One thing to note is that there are questions that appear in Wave 3 but not in Wave 4. One important question is q20112 which asks respondents how much trust they have for the Muslim Brotherhood, which is an ideal indicator to measure public opinion on the organization that is outlawed by the government and is often framed as terrorist organization by the government. In this analysis I include this question for Wave 3 due to its significance, but instead in Wave 4, I add question q1072 (which again does not appear in Wave 3) on how much individuals are worried about terrorism.
 
 ```{r, warning=FALSE}
 # Recode responses (wave 3)
@@ -257,7 +264,7 @@ egypt_1 <- egypt_wt1 %>%
                          "Much better" = 0.9))
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 # Recode responses (wave 4)
 egypt_2 <- egypt_wt2 %>%
   mutate(q1001 = as.numeric(q1001),
@@ -398,23 +405,23 @@ egypt_2 <- egypt_wt2 %>%
 
 ### Number of clusters
 
+According to the results of the three testing methods for optimal number of clusters - within sum of squares, average silhouette width and gap statistics - I choose to work with 6 clusters. 
+According to within sum of squares method, 5 or 6 clusters seem fair for both periods. Meanwhile, the average silhouette width method gives us 2 clusters for the analysis. However, having 2 clusters would not account for enough variation within the Egyptian public opinion. The next nearest number of cluster that has similar average silhouette width is 6. Lastly, according to the gap statistics method, cluster 7 or 9 is the most optimal. I pick 9 clusters, which seem to work well according to all other methods. (The knitr did not work with printing the fviz_nbclust function, so I inserted the outcome as image files.)
+
 ```{r, include=FALSE}
 # Drop weight variables
 egypt_1 <- select(egypt_1, -one_of(c("wt", "wt10", "country")))
 egypt_2 <- select(egypt_2, -one_of(c("wt", "wt10", "country"))) 
 
-
 ##Optimal number of clusters
-#fviz_nbclust(egypt_1, FUN = kmeans, method = "wss") #5?
+#fviz_nbclust(egypt_1, FUN = kmeans, method = "wss") #5 or 6
 #fviz_nbclust(egypt_1, FUN = kmeans, method = "silhouette") #2
 #fviz_nbclust(egypt_1, FUN = kmeans, method = "gap_stat") #7
 
-#fviz_nbclust(egypt_2, FUN = kmeans, method = "wss") #5?
+#fviz_nbclust(egypt_2, FUN = kmeans, method = "wss") #5 or 6
 #fviz_nbclust(egypt_2, FUN = kmeans, method = "silhouette") #2
 #fviz_nbclust(egypt_2, FUN = kmeans, method = "gap_stat") #9
 ```
-
-
 
 ```{r figurename, echo=FALSE, out.width = '100%'}
 knitr::include_graphics("period1.png")
@@ -425,18 +432,20 @@ knitr::include_graphics("period2.png")
 #Clustering Analysis
 set.seed(2020)
 egypt1_kmeans <- kmeans(na.omit(egypt_1),
-                       centers = 6, # number of clusters
+                       centers = 9, # number of clusters
                        nstart = 100)
 egypt2_kmeans <- kmeans(na.omit(egypt_2),
-                       centers = 6, # number of clusters
+                       centers = 9, # number of clusters
                        nstart = 100)
-
-tidy(egypt1_kmeans) %>% knitr::kable(digits = 2)
-tidy(egypt2_kmeans) %>% knitr::kable(digits = 2)
 ```
 
 
-```{r}
+
+### Prediction
+
+
+
+```{r, warning=FALSE}
 # Expert check
 mean1 <- bind_cols(
   egypt_1,
@@ -450,12 +459,15 @@ mean2 <- bind_cols(
   group_by(cluster) %>% 
   summarise(across(everything(), list(mean)))
 
-  
-mean1 %>% knitr::kable(digits = 3)
-mean2 %>% knitr::kable(digits = 3)
+mean1 %>% knitr::kable(digits = 2)
+mean2 %>% knitr::kable(digits = 2)
 ```
 
 
+
+### PCA - Visualization
+
+Since PCA1 and PCA2 only explain 38% of the data, the vizualization would not be as useful. 
 
 ```{r}
 #PCA
@@ -470,29 +482,38 @@ bind_cols(
   as_tibble(principle_components1$x), 
   cluster = egypt1_kmeans$cluster) %>%
   ggplot(aes(PC1, PC2, color = factor(cluster))) + geom_point() +
+  scale_color_viridis_d() + facet_wrap(~ cluster) +
   labs(title = "Public Opinion Clusters and PCA") + theme_minimal()
 
 bind_cols(
   as_tibble(principle_components2$x), 
   cluster = egypt2_kmeans$cluster) %>%
   ggplot(aes(PC1, PC2, color = factor(cluster))) + geom_point() +
-  labs(title = "Public Opinion Clusters and PCA") + theme_minimal()
+  scale_color_viridis_d() + facet_wrap(~ cluster) +
+  labs(title = "Public Opinion Clusters and PCA") + theme_minimal() 
+
+
+
 ```
 
+
+### Parellel coordinate plot
+
+As an alternative, I plot a parellel coordinate plot which shows how each clusters are posited within or consisted of each variables, or, in this case, questionnaires. The figure below shows how the nine clusters contain information of the questionnaires. There is clearly differences across variables in terms of variance across clusters. For instance, the first few variables that are binary (e.g. gender, urban/rural) have higher variance than questions asking if they are concerned about terrorism (T2, q1072) or religiosity (T1, q609). 
+ 
 ```{r, include= FALSE}
 #change as factor
 mean1$cluster <- as.factor(mean1$cluster)
 mean2$cluster <- as.factor(mean2$cluster)
 ```
 
-
 ```{r}
 #Parellel coordinate plot
-x <- ggparcoord(mean1, columns = c(2,3,5:7,11,14:19), 
+x <- ggparcoord(mean1, columns = c(2:3,6,9:11,14:19), 
                 groupColumn = 'cluster', scale = 'globalminmax',
                 showPoints = TRUE) + theme_bw() + scale_color_viridis(discrete=TRUE)
 
-y <- ggparcoord(mean2, columns = c(2,3,5:7,11,14:19), 
+y <- ggparcoord(mean2, columns = c(2:3,6,9:11,14:19), 
                 groupColumn = 'cluster', scale = 'globalminmax',
                 showPoints = TRUE) + theme_bw() + scale_color_viridis(discrete=TRUE)
 
@@ -503,3 +524,54 @@ ggarrange(
 ```
 
 
+The variable that I make a foundational reference is q605a, which is their response on political parties - secular vs. religious politial party. These are clusters of people who either responded they prefer Islamist political parties or secular political parties. 
+
+Since question on the Muslim Brotherhood is not available for comparison in Wave 4, this is the closest comparable measurment I can get from the two datasets. The reason I pick 2 clusters instead of 1 is because I am only selecting clusters from one base variable, I might lose some explanatory power with just one cluster. Fortunately, if I choose two clusters for each 
+ 
+We can see from both graphs that clusters 5 and 6 (T1) and 2 and 6 (T2) are groups of people who prefer Islamist groups - they are mostly from rural Egypt - while clusters 7 and 9 (T1) and 3 and 9 (T2) prefer secular groups, who are from the urban Egypt. It is also evident from T1 that clusters 5 and 6 are the ones who are most supportive of the Muslim Brotherhood (q20112), while their counterparts have the lowest rate of support and trust.
+
+From the summary below, we see the size (percentage) of each clusters.  
+
+```{r}
+## Highlight 
+filter1 <- mean1 %>%
+  group_by(cluster) %>% 
+  filter(cluster == 6) %>%
+  ungroup()
+
+a <- mean1 %>%
+  ggparcoord(columns = c(2:3,6,9:11,14:19), 
+             groupColumn = 'cluster', scale = 'globalminmax', 
+             showPoints = TRUE) + theme_bw() + 
+  scale_color_manual(values=c("#E8E8E8", "#E8E8E8", "#E8E8E8", "#E8E8E8", "#69b3a2", 
+                              "#69b3a2", "gold1", "#E8E8E8", "gold1")) 
+
+b <- mean2 %>%
+  ggparcoord(columns = c(2:3,6,9:11,14:19), 
+             groupColumn = 'cluster', scale = 'globalminmax', 
+             showPoints = TRUE) + theme_bw() + 
+  scale_color_manual(values=c("#E8E8E8", "#69b3a2", "slateblue4", "#E8E8E8", "#E8E8E8", 
+                              "#69b3a2", "#E8E8E8", "#E8E8E8", "slateblue4"))
+#Plot
+ggarrange(
+  a, b, labels = c("T1", "T2"),
+  common.legend = FALSE, legend = "bottom", nrow = 2
+  )
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#Percentage of each clusters
+bind_cols(
+  egypt_1,
+  cluster = egypt1_kmeans$cluster) %>%
+  group_by(cluster) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n)*100)
+
+bind_cols(
+  egypt_2,
+  cluster = egypt2_kmeans$cluster) %>%
+  group_by(cluster) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n)*100)
+```
