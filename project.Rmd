@@ -530,8 +530,6 @@ Since question on the Muslim Brotherhood is not available for comparison in Wave
  
 We can see from both graphs that clusters 5 and 6 (T1) and 2 and 6 (T2) are groups of people who prefer Islamist groups - they are mostly from rural Egypt - while clusters 7 and 9 (T1) and 3 and 9 (T2) prefer secular groups, who are from the urban Egypt. It is also evident from T1 that clusters 5 and 6 are the ones who are most supportive of the Muslim Brotherhood (q20112), while their counterparts have the lowest rate of support and trust.
 
-From the summary below, we see the size (percentage) of each clusters.  
-
 ```{r}
 ## Highlight 
 filter1 <- mean1 %>%
@@ -558,6 +556,17 @@ ggarrange(
   common.legend = FALSE, legend = "bottom", nrow = 2
   )
 ```
+
+## Political Polarization 
+
+From the summary below, we see the size (percentage) of each clusters. Before anti-terror law was adopted in Egypt, those who prefer Islamist political parties (cluster 5 and 6) account for 14.9% of the entire repondents while those who prefer secular political parties (cluster 7 and 9) account for 21.3%. 
+
+In the post-treatment period or after the anti-terror law enactment, the overall trend shift slightly to the pro-Islamist stance. While those who prefer Islamist political parties (cluster 2 and 6) account for 25.5% of the entire repondents, those who prefer secular political parties (cluster 3 and 9) account for 16.9%. 
+
+Overall, we see more respondents in each of the extreme stances (either pro-Islamist or pro-secularist respondents) in the 2016-2017 period, compared to the size of the moderates, which would be the rest of the clusters. The moderates in this aspect decreased in size from 63.8 to 57.6. This implies that the society has been somewhat polarized in terms of their opinion on politial parties and their ideologies. 
+
+While there are more pro-Islamist groups within the survey respondents after the anti-terror law adoption, it is hard to conclude that pro-secular groups have changed their political stance or ideology. It could be due to the growing distrust and disappointment of the general public towards the government and the incumbent political party, which is prevalent in Arab region as a whole. 
+
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 #Percentage of each clusters
