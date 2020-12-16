@@ -5,4 +5,9 @@
 
 I explore how Egyptian public opinion shifts after the adoption of anti-terror law in 2015. By using unsupervised machine learning, I show how latent clusters that display the polarization between secularists and Islamists as anti-terror law exacerbate.
 
-<img src="plot.png" width="1000">
+* [Research Question](https://dainyoo46.github.io/final_project/intro)
+* [Data & Method]()
+* [Preprocessing]()
+* [Unsupervised Machine Learning (Cluster Analysis)]()
+* [Parellel Coordinate Plot]()
+* [Conclusion]()
