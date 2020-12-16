@@ -27,6 +27,18 @@ library(dendextend)
 I am interested in how Egyptian public opinion shifts after the adoption of anti-terror law in Egypt. Specifically, I am interested in exploring polarization between secularists and Islamists as anti-terror law, by nature, targets Islamist extremists and the secular regime would target the Islamists as potential threat to national security. 
 
 
+### Why Egypt?
+
+The Middle East and North Africa is a particularly interesting region in a way that only few anti-terror laws have been passed by the states despite experiencing the highest level of global terrorism. In fact, we can see from Figure 2, which is a normalized graph of the number of anti- terror laws passed per 100 terrorist attacks, that it is not only one of the few regions that did not see a surge in anti-terror law adoption after the 9/11, marked in a blue vertical line at year 2001, but also shows no significant performance in legal enactment in general despite the high level of terrorist attacks. 
+
+This region is also an interesting place to look at the effect of anti-terror laws since the Islamist groups have always been either marginalized, repressed or coopted by the secularist dictatorships and monarchs. Egypt is one of the countries where political Islamist groups have been marginalized by the nationalist secular authorities since the 1960s. In fact, the Muslim Brotherhood has been outlawed in 2013 and criticized as a terrorist organization, but still a third of Egyptians support the Muslim Brotherhood, implying that there would be some kind of polarization among its population.
+
+```{r, echo=FALSE, out.width = '60%'}
+knitr::include_graphics("attack.png")
+knitr::include_graphics("normalize.png")
+```
+
+
 
 ### Data and Methods
 
@@ -437,17 +449,14 @@ bind_cols(
   cluster = egypt1_kmeans$cluster) %>%
   ggplot(aes(PC1, PC2, color = factor(cluster))) + geom_point() +
   scale_color_viridis_d() + facet_wrap(~ cluster) +
-  labs(title = "Public Opinion Clusters and PCA") + theme_minimal()
+  labs(title = "Public Opinion Clusters and PCA (2012-2014)") + theme_minimal()
 
 bind_cols(
   as_tibble(principle_components2$x), 
   cluster = egypt2_kmeans$cluster) %>%
   ggplot(aes(PC1, PC2, color = factor(cluster))) + geom_point() +
   scale_color_viridis_d() + facet_wrap(~ cluster) +
-  labs(title = "Public Opinion Clusters and PCA") + theme_minimal() 
-
-
-
+  labs(title = "Public Opinion Clusters and PCA (2016-2017)") + theme_minimal() 
 ```
 
 
