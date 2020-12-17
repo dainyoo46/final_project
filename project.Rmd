@@ -22,6 +22,9 @@ library(dendextend)
 
 ```
 
+## 
+
+
 ### Research puzzle
 
 I am interested in how Egyptian public opinion shifts after the adoption of anti-terror law in Egypt. Specifically, I am interested in exploring polarization between secularists and Islamists as anti-terror law, by nature, targets Islamist extremists and the secular regime would target the Islamists as potential threat to national security. 
@@ -371,8 +374,8 @@ egypt_2 <- egypt_wt2 %>%
 
 ### Number of clusters
 
-According to the results of the three testing methods for optimal number of clusters - within sum of squares, average silhouette width and gap statistics - I choose to work with 6 clusters. 
-According to within sum of squares method, 5 or 6 clusters seem fair for both periods. Meanwhile, the average silhouette width method gives us 2 clusters for the analysis. However, having 2 clusters would not account for enough variation within the Egyptian public opinion. The next nearest number of cluster that has similar average silhouette width is 6. Lastly, according to the gap statistics method, cluster 7 or 9 is the most optimal. I pick 9 clusters, which seem to work well according to all other methods. (The knitr did not work with printing the fviz_nbclust function, so I inserted the outcome as image files.)
+According to the results of the three testing methods for optimal number of clusters - within sum of squares, average silhouette width and gap statistics - I choose to work with 9 clusters. 
+According to within sum of squares method, 5 or 6 clusters seem fair for both periods. Meanwhile, the average silhouette width method gives us 2 clusters for the analysis. However, having 2 clusters would not account for enough variation within the Egyptian public opinion. The next nearest number of cluster that has similar average silhouette width is 6. Lastly, according to the gap statistics method, cluster 7 or 9 is the most optimal. I pick 9 clusters, which seem to work well according to all other methods. 
 
 ```{r, include=FALSE}
 # Drop weight variables

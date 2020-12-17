@@ -1,6 +1,6 @@
 #### Final Project
 #### Dain Yoo (PPOL 670 Intro to Data Science)
-#### [Link to the Project](https://dainyoo46.github.io/final_project/project)
+#### [Link to the Full Project](https://dainyoo46.github.io/final_project/project)
 
 
 ## Anti-Terror Law and Political Polarization in Egypt: Cluster Analysis of Public Opinion Survey (2012 - 2017)
@@ -9,6 +9,6 @@ I explore how Egyptian public opinion shifts after the adoption of anti-terror l
 
 * [Research Question](https://dainyoo46.github.io/final_project/intro)
 * [Data & Method](https://dainyoo46.github.io/final_project/data)
-* [Unsupervised Machine Learning (Cluster Analysis)]()
+* [Unsupervised Machine Learning (Cluster Analysis)](https://dainyoo46.github.io/final_project/cluster)
 * [Parellel Coordinate Plot]()
 * [Conclusion]()
