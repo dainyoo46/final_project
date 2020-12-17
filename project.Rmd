@@ -5,6 +5,9 @@ date: "12/14/2020"
 output: html_document
 ---
 
+* [Github Repo](https://github.com/dainyoo46/final_project)
+* [Github Page](https://dainyoo46.github.io/final_project/)
+
 ```{r setup, include=FALSE}
 rm(list=ls())
 library(tidyverse) 
@@ -22,7 +25,6 @@ library(dendextend)
 
 ```
 
-## 
 
 
 ### Research puzzle
