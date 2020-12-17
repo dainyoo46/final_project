@@ -463,9 +463,9 @@ bind_cols(
 ```
 
 
-### Parellel coordinate plot
+### Parellel coordinates plot
 
-As an alternative, I plot a parellel coordinate plot which shows how each clusters are posited within or consisted of each variables, or, in this case, questionnaires. The figure below shows how the nine clusters contain information of the questionnaires. There is clearly differences across variables in terms of variance across clusters. For instance, the first few variables that are binary (e.g. gender, urban/rural) have higher variance than questions asking if they are concerned about terrorism (T2, q1072) or religiosity (T1, q609). 
+As an alternative, I plot a parellel coordinates plot which shows how each clusters are posited within or consisted of each variables, or, in this case, questionnaires. The figure below shows how the nine clusters contain information of the questionnaires. There is clearly differences across variables in terms of variance across clusters. For instance, the first few variables that are binary (e.g. gender, urban/rural) have higher variance than questions asking if they are concerned about terrorism (T2, q1072) or religiosity (T1, q609). 
  
 ```{r, include= FALSE}
 #change as factor

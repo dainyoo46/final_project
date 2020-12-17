@@ -20,3 +20,11 @@ According to within sum of squares method, 5 or 6 clusters seem fair for both pe
 ![](t1.png)  
 
 ![](t2.png)
+
+
+### PCA
+
+Since PCA1 and PCA2 only explain 38% of the data, the vizualization would not be as useful.  
+
+
+![](pca.png)  

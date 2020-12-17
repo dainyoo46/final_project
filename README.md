@@ -10,5 +10,8 @@ I explore how Egyptian public opinion shifts after the adoption of anti-terror l
 * [Research Question](https://dainyoo46.github.io/final_project/intro)
 * [Data & Method](https://dainyoo46.github.io/final_project/data)
 * [Unsupervised Machine Learning (Cluster Analysis)](https://dainyoo46.github.io/final_project/cluster)
-* [Parellel Coordinate Plot]()
-* [Conclusion]()
+* [Parellel Coordinate Plot](https://dainyoo46.github.io/final_project/visualization)
+* [Conclusion](https://dainyoo46.github.io/final_project/conclusion)
+
+
+![](cluster.png)  
