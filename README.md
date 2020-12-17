@@ -14,4 +14,4 @@ I explore how Egyptian public opinion shifts after the adoption of anti-terror l
 * [Conclusion](https://dainyoo46.github.io/final_project/conclusion)
 
 
-![](cluster.png)  
+![](final_project/cluster.png)  
